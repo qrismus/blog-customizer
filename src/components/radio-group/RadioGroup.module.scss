@@ -41,6 +41,7 @@
 .label:hover,
 .item[data-checked='true'] .label:hover {
 	background: var(--gold, #ffc802);
+	transition: 0.6s linear;
 }
 
 .item[data-checked='true'] .label {
