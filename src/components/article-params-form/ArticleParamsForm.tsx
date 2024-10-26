@@ -1,6 +1,6 @@
 import clsx from 'clsx';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { ArrowButton } from 'components/arrow-button';
 import { Button } from 'components/button';
 import { Text } from 'components/text';
@@ -21,58 +21,53 @@ import {
 } from 'src/constants/articleProps';
 
 type ArticleParamsFormProps = {
-	open: boolean;
-	toggleClick: () => void;
 	updateArticleState: (newStyles: ArticleStateType) => void;
 };
 
 export const ArticleParamsForm = ({
-	open,
-	toggleClick,
 	updateArticleState,
 }: ArticleParamsFormProps) => {
-	const [selectedFont, setSelectedFont] = useState(
-		defaultArticleState.fontFamilyOption
-	);
-	const [selectedFontColor, setSelectedFontColor] = useState(
-		defaultArticleState.fontColor
-	);
-	const [selectedBackgroundColor, setSelectedBackgroundColor] = useState(
-		defaultArticleState.backgroundColor
-	);
-	const [selectedContentWidth, setSelectedContentWidth] = useState(
-		defaultArticleState.contentWidth
-	);
-	const [selectedFontSize, setSelectedFontSize] = useState(
-		defaultArticleState.fontSizeOption
-	);
+	const [open, setOpen] = useState(false);
 
-	const applyChanges = (event: React.FormEvent) => {
-		event.preventDefault();
+	const [articleState, setArticleState] =
+		useState<ArticleStateType>(defaultArticleState);
 
-		updateArticleState({
-			fontFamilyOption: selectedFont,
-			fontColor: selectedFontColor,
-			backgroundColor: selectedBackgroundColor,
-			contentWidth: selectedContentWidth,
-			fontSizeOption: selectedFontSize,
-		});
+	const applyChanges = (e: React.FormEvent) => {
+		e.preventDefault();
+		updateArticleState(articleState);
 	};
 
 	const resetToDefault = () => {
-		setSelectedFont(defaultArticleState.fontFamilyOption);
-		setSelectedFontColor(defaultArticleState.fontColor);
-		setSelectedBackgroundColor(defaultArticleState.backgroundColor);
-		setSelectedContentWidth(defaultArticleState.contentWidth);
-		setSelectedFontSize(defaultArticleState.fontSizeOption);
-
+		setArticleState(defaultArticleState);
 		updateArticleState(defaultArticleState);
 	};
+
+	const sidebarRef = useRef<HTMLElement>(null);
+
+	const toggleClick = () => {
+		setOpen(!open);
+	};
+
+	useEffect(() => {
+		const handleClickOutside = (e: MouseEvent) => {
+			if (
+				sidebarRef.current &&
+				!sidebarRef.current.contains(e.target as Node)
+			) {
+				setOpen(false);
+			}
+		};
+		if (open) {
+			document.addEventListener('mousedown', handleClickOutside);
+		}
+		return () => document.removeEventListener('mousedown', handleClickOutside);
+	}, [open]);
 
 	return (
 		<>
 			<ArrowButton isOpen={open} handleClick={toggleClick} />
 			<aside
+				ref={sidebarRef}
 				className={clsx({
 					[styles.container]: true,
 					[styles.container_open]: open,
@@ -83,36 +78,42 @@ export const ArticleParamsForm = ({
 					</Text>
 					<Select
 						options={fontFamilyOptions}
-						selected={selectedFont}
-						onChange={(selected: OptionType) => setSelectedFont(selected)}
+						selected={articleState.fontFamilyOption}
+						onChange={(selected: OptionType) =>
+							setArticleState({ ...articleState, fontFamilyOption: selected })
+						}
 						title='Шрифт'
 					/>
 					<RadioGroup
 						name='fontSize'
 						options={fontSizeOptions}
-						selected={selectedFontSize}
-						onChange={(selected: OptionType) => setSelectedFontSize(selected)}
+						selected={articleState.fontSizeOption}
+						onChange={(selected: OptionType) =>
+							setArticleState({ ...articleState, fontSizeOption: selected })
+						}
 						title='Размер шрифта'
 					/>
 					<Select
 						options={fontColors}
-						selected={selectedFontColor}
-						onChange={(selected: OptionType) => setSelectedFontColor(selected)}
+						selected={articleState.fontColor}
+						onChange={(selected: OptionType) =>
+							setArticleState({ ...articleState, fontColor: selected })
+						}
 						title='Цвет шрифта'
 					/>
 					<Select
 						options={backgroundColors}
-						selected={selectedBackgroundColor}
+						selected={articleState.backgroundColor}
 						onChange={(selected: OptionType) =>
-							setSelectedBackgroundColor(selected)
+							setArticleState({ ...articleState, backgroundColor: selected })
 						}
 						title='Цвет фона'
 					/>
 					<Select
 						options={contentWidthArr}
-						selected={selectedContentWidth}
+						selected={articleState.contentWidth}
 						onChange={(selected: OptionType) =>
-							setSelectedContentWidth(selected)
+							setArticleState({ ...articleState, contentWidth: selected })
 						}
 						title='Ширина контента'
 					/>
